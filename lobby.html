@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MangoMessage - Lobby</title>
+
+    <link rel="stylesheet" href="INDEX.CSS">
+</head>
+
+<body>
+
+    <div id="container">
+
+        <h1>MangoMessage</h1>
+
+        <h2>Choose a room</h2>
+
+        <div id="rooms">
+
+            <button class="roomButton" data-room="General">
+                General
+            </button>
+
+            <button class="roomButton" data-room="Gaming">
+                Gaming
+            </button>
+
+            <button class="roomButton" data-room="Random">
+                Random
+            </button>
+
+        </div>
+
+        <p id="status"></p>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="lobby.js"></script>
+
+</body>
+</html>

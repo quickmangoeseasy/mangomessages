@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MangoMessage</title>
+
+    <link rel="stylesheet" href="INDEX.CSS">
+</head>
+
+<body>
+
+    <div id="container">
+
+        <h1>MangoMessage</h1>
+
+        <p>Choose a username</p>
+
+        <form id="usernameForm">
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Username"
+                maxlength="24"
+                autocomplete="off"
+            >
+
+            <button type="submit">
+                Continue
+            </button>
+
+        </form>
+
+        <p id="status"></p>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

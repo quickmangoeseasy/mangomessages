@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MangoMessage - General</title>
+
+    <link rel="stylesheet" href="INDEX.CSS">
+</head>
+
+<body>
+
+    <div id="container">
+
+        <h1>General</h1>
+
+        <div id="messages"></div>
+
+        <form id="messageForm">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Type a message..."
+                maxlength="500"
+                autocomplete="off"
+            >
+
+            <button type="submit">
+                Send
+            </button>
+
+        </form>
+
+        <button id="leaveButton">
+            Leave Room
+        </button>
+
+        <p id="status"></p>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="chatroom.js"></script>
+
+</body>
+</html>
