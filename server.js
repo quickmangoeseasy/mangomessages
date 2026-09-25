@@ -9,253 +9,711 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 1269;
 
+/*
+=========================
+ROOMS
+=========================
+*/
+
 const rooms = {
-    General: [],
-    Gaming: [],
-    Random: []
+General: [],
+Gaming: [],
+Random: []
 };
-
-let lastResetDate = null;
-
-function checkDailyReset() {
-    const now = new Date();
-
-    const easternTime = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: false
-    }).formatToParts(now);
-
-    const year = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
-        year: "numeric"
-    }).format(now);
-
-    const month = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
-        month: "2-digit"
-    }).format(now);
-
-    const day = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/New_York",
-        day: "2-digit"
-    }).format(now);
-
-    const hour = Number(
-        easternTime.find(part => part.type === "hour").value
-    );
-
-    const minute = Number(
-        easternTime.find(part => part.type === "minute").value
-    );
-
-    const dateKey = year + "-" + month + "-" + day;
-
-    if (hour === 6 && minute === 7 && lastResetDate !== dateKey) {
-        rooms.General.length = 0;
-        rooms.Gaming.length = 0;
-        rooms.Random.length = 0;
-
-        lastResetDate = dateKey;
-
-        console.log("Daily message reset completed at 6:07 AM Eastern Time.");
-    }
-}
-
-setInterval(checkDailyReset, 10000);
 
 const allowedRooms = Object.keys(rooms);
 
+/*
+=========================
+BANNED WORDS
+=========================
+*/
+
 const bannedWords = [
-    "fuck",
-    "shit",
-    "bitch",
-    "asshole",
-    "bastard",
-    "dick",
-    "piss",
-    "crap",
-    "i hate aavyaan",
+"fuck",
+"shit",
+"bitch",
+"asshole",
+"bastard",
+"dick",
+"piss",
+"crap"
 ];
+
+/*
+=========================
+EXPRESS
+=========================
+*/
 
 app.use(express.json());
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+res.sendFile(path.join(__dirname, "index.html"));
 });
 
+/*
+=========================
+MESSAGE FILTER
+=========================
+*/
+
 function filterMessage(message) {
-    let filtered = message;
+let filtered = message;
 
-    for (const word of bannedWords) {
-        const regex = new RegExp("\\b" + word + "\\b", "gi");
-        filtered = filtered.replace(regex, "*".repeat(word.length));
-    }
+```
+for (const word of bannedWords) {
+    const regex = new RegExp("\\b" + word + "\\b", "gi");
 
-    return filtered;
+    filtered = filtered.replace(
+        regex,
+        "*".repeat(word.length)
+    );
 }
+
+return filtered;
+```
+
+}
+
+/*
+=========================
+USERNAME
+=========================
+*/
 
 function generateUsername() {
-    const number = Math.floor(1000 + Math.random() * 9000);
-    return "Mangoman " + number;
+const number = Math.floor(
+1000 + Math.random() * 9000
+);
+
+```
+return "Mangoman " + number;
+```
+
 }
+
+/*
+=========================
+SYSTEM MESSAGES
+=========================
+*/
 
 function createSystemMessage(message) {
-    return {
-        type: "system",
-        message: message,
-        time: new Date().toISOString()
-    };
+return {
+type: "system",
+message: message,
+time: new Date().toISOString()
+};
 }
+
+/*
+=========================
+CHAT MESSAGES
+=========================
+*/
 
 function createChatMessage(username, message) {
-    return {
-        type: "message",
-        username: username,
-        message: message,
-        time: new Date().toISOString()
-    };
+return {
+type: "message",
+username: username,
+message: message,
+time: new Date().toISOString()
+};
 }
 
-io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+/*
+=========================
+DAILY MESSAGE RESET
+6:07 AM EASTERN TIME
+=========================
+*/
 
-    socket.data.username = null;
-    socket.data.room = null;
+let lastResetDate = null;
 
-    socket.emit("roomList", allowedRooms);
+function checkDailyReset() {
+const now = new Date();
 
-    socket.on("joinRoom", (data) => {
-        if (!data || typeof data !== "object") {
-            return;
-        }
+```
+const easternParts = new Intl.DateTimeFormat(
+    "en-US",
+    {
+        timeZone: "America/New_York",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: false
+    }
+).formatToParts(now);
 
-        let username = String(data.username || "").trim();
-        const room = String(data.room || "").trim();
+const year = new Intl.DateTimeFormat(
+    "en-US",
+    {
+        timeZone: "America/New_York",
+        year: "numeric"
+    }
+).format(now);
 
-        if (username === "") {
-            username = generateUsername();
-        }
+const month = new Intl.DateTimeFormat(
+    "en-US",
+    {
+        timeZone: "America/New_York",
+        month: "2-digit"
+    }
+).format(now);
 
-        username = username.slice(0, 24);
+const day = new Intl.DateTimeFormat(
+    "en-US",
+    {
+        timeZone: "America/New_York",
+        day: "2-digit"
+    }
+).format(now);
 
-        if (!allowedRooms.includes(room)) {
-            socket.emit("errorMessage", "That room does not exist.");
-            return;
-        }
+const hour = Number(
+    easternParts.find(
+        part => part.type === "hour"
+    ).value
+);
 
-        if (socket.data.room === room) {
-            return;
-        }
+const minute = Number(
+    easternParts.find(
+        part => part.type === "minute"
+    ).value
+);
 
-        if (socket.data.room) {
-            const oldRoom = socket.data.room;
+const dateKey =
+    year + "-" + month + "-" + day;
 
-            socket.leave(oldRoom);
+if (
+    hour === 6 &&
+    minute === 7 &&
+    lastResetDate !== dateKey
+) {
+    rooms.General.length = 0;
+    rooms.Gaming.length = 0;
+    rooms.Random.length = 0;
 
-            io.to(oldRoom).emit(
-                "systemMessage",
-                createSystemMessage(
-                    username + " left the room!"
-                )
-            );
-        }
+    lastResetDate = dateKey;
 
-        socket.data.username = username;
-        socket.data.room = room;
+    console.log(
+        "All messages deleted at 6:07 AM Eastern Time."
+    );
 
-        socket.join(room);
+    /*
+        Tell everyone currently online
+        that the messages were cleared.
+    */
 
-        socket.emit("roomHistory", rooms[room]);
-
+    for (const room of allowedRooms) {
         io.to(room).emit(
-            "systemMessage",
-            createSystemMessage(
-                username + " joined the room!"
-            )
+            "messagesCleared"
+        );
+    }
+}
+```
+
+}
+
+/*
+Check every 10 seconds.
+*/
+
+setInterval(checkDailyReset, 10000);
+
+/*
+=========================
+ANTI-SPAM
+=========================
+*/
+
+function generateSpamCode() {
+const characters =
+"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+```
+let code = "";
+
+for (let i = 0; i < 5; i++) {
+    code += characters[
+        Math.floor(
+            Math.random() * characters.length
+        )
+    ];
+}
+
+return code;
+```
+
+}
+
+function checkSpam(socket) {
+const now = Date.now();
+
+```
+if (!socket.data.messageTimes) {
+    socket.data.messageTimes = [];
+}
+
+/*
+    Only keep messages from the
+    last 5 seconds.
+*/
+
+socket.data.messageTimes =
+    socket.data.messageTimes.filter(
+        time => now - time < 5000
+    );
+
+socket.data.messageTimes.push(now);
+
+/*
+    5 messages within 5 seconds
+    triggers the challenge.
+*/
+
+if (socket.data.messageTimes.length >= 5) {
+    socket.data.messageTimes = [];
+
+    socket.data.spamCode =
+        generateSpamCode();
+
+    socket.data.spamBlocked = true;
+
+    socket.emit(
+        "spamChallenge",
+        {
+            code: socket.data.spamCode
+        }
+    );
+
+    return true;
+}
+
+return false;
+```
+
+}
+
+/*
+=========================
+SOCKET.IO
+=========================
+*/
+
+io.on("connection", (socket) => {
+
+```
+console.log(
+    "User connected:",
+    socket.id
+);
+
+socket.data.username = null;
+socket.data.room = null;
+
+socket.data.messageTimes = [];
+socket.data.spamBlocked = false;
+socket.data.spamCode = null;
+
+/*
+    Send available rooms.
+*/
+
+socket.emit(
+    "roomList",
+    allowedRooms
+);
+
+/*
+    =========================
+    JOIN ROOM
+    =========================
+*/
+
+socket.on("joinRoom", (data) => {
+
+    if (
+        !data ||
+        typeof data !== "object"
+    ) {
+        return;
+    }
+
+    let username =
+        String(
+            data.username || ""
+        ).trim();
+
+    const room =
+        String(
+            data.room || ""
+        ).trim();
+
+    if (username === "") {
+        username =
+            generateUsername();
+    }
+
+    username =
+        username.slice(0, 24);
+
+    /*
+        Make sure the room exists.
+    */
+
+    if (
+        !allowedRooms.includes(room)
+    ) {
+        socket.emit(
+            "errorMessage",
+            "That room does not exist."
         );
 
-        console.log(username + " joined " + room);
-    });
+        return;
+    }
 
-    socket.on("sendMessage", (data) => {
-        if (!data || typeof data !== "object") {
-            return;
-        }
+    /*
+        Already in this room.
+    */
 
-        const room = socket.data.room;
+    if (socket.data.room === room) {
+        return;
+    }
 
-        if (!room || !rooms[room]) {
-            socket.emit("errorMessage", "Join a room first.");
-            return;
-        }
+    /*
+        Leave previous room.
+    */
 
-        let message = String(data.message || "").trim();
+    if (socket.data.room) {
 
-        if (message === "") {
-            return;
-        }
+        const oldRoom =
+            socket.data.room;
 
-        message = message.slice(0, 500);
-        message = filterMessage(message);
+        socket.leave(oldRoom);
 
-        const chatMessage = createChatMessage(
+        io.to(oldRoom).emit(
+            "systemMessage",
+            createSystemMessage(
+                username +
+                " left the room!"
+            )
+        );
+    }
+
+    /*
+        Save user information.
+    */
+
+    socket.data.username =
+        username;
+
+    socket.data.room =
+        room;
+
+    /*
+        Join Socket.IO room.
+    */
+
+    socket.join(room);
+
+    /*
+        Send previous messages
+        to the user.
+    */
+
+    socket.emit(
+        "roomHistory",
+        rooms[room]
+    );
+
+    /*
+        Tell everyone in the room
+        that the user joined.
+    */
+
+    io.to(room).emit(
+        "systemMessage",
+        createSystemMessage(
+            username +
+            " joined the room!"
+        )
+    );
+
+    console.log(
+        username +
+        " joined " +
+        room
+    );
+});
+
+/*
+    =========================
+    SEND MESSAGE
+    =========================
+*/
+
+socket.on("sendMessage", (data) => {
+
+    /*
+        Don't allow messages while
+        the spam challenge is active.
+    */
+
+    if (socket.data.spamBlocked) {
+        return;
+    }
+
+    /*
+        Check for spam.
+    */
+
+    if (checkSpam(socket)) {
+        return;
+    }
+
+    if (
+        !data ||
+        typeof data !== "object"
+    ) {
+        return;
+    }
+
+    const room =
+        socket.data.room;
+
+    /*
+        User must be inside a room.
+    */
+
+    if (
+        !room ||
+        !rooms[room]
+    ) {
+        socket.emit(
+            "errorMessage",
+            "Join a room first."
+        );
+
+        return;
+    }
+
+    let message =
+        String(
+            data.message || ""
+        ).trim();
+
+    if (message === "") {
+        return;
+    }
+
+    /*
+        Limit message length.
+    */
+
+    message =
+        message.slice(0, 500);
+
+    /*
+        Filter banned words.
+    */
+
+    message =
+        filterMessage(message);
+
+    /*
+        Create message.
+    */
+
+    const chatMessage =
+        createChatMessage(
             socket.data.username,
             message
         );
 
-        rooms[room].push(chatMessage);
+    /*
+        Save message.
+    */
 
-        if (rooms[room].length > 100) {
-            rooms[room].shift();
-        }
+    rooms[room].push(
+        chatMessage
+    );
 
-        io.to(room).emit("newMessage", chatMessage);
-    });
+    /*
+        Keep only the latest
+        100 messages.
+    */
 
-    socket.on("leaveRoom", () => {
-        const room = socket.data.room;
-        const username = socket.data.username;
+    if (
+        rooms[room].length > 100
+    ) {
+        rooms[room].shift();
+    }
 
-        if (!room) {
+    /*
+        Send message to everyone
+        in the room.
+    */
+
+    io.to(room).emit(
+        "newMessage",
+        chatMessage
+    );
+});
+
+/*
+    =========================
+    VERIFY SPAM CODE
+    =========================
+*/
+
+socket.on(
+    "verifySpamChallenge",
+    (enteredCode) => {
+
+        if (
+            !socket.data.spamBlocked
+        ) {
             return;
         }
 
-        socket.leave(room);
+        const code =
+            String(
+                enteredCode || ""
+            )
+            .trim()
+            .toUpperCase();
+
+        if (
+            code ===
+            socket.data.spamCode
+        ) {
+
+            socket.data.spamBlocked =
+                false;
+
+            socket.data.spamCode =
+                null;
+
+            socket.emit(
+                "spamChallengeResult",
+                {
+                    success: true
+                }
+            );
+
+            console.log(
+                socket.data.username +
+                " passed the spam challenge."
+            );
+
+        } else {
+
+            socket.emit(
+                "spamChallengeResult",
+                {
+                    success: false
+                }
+            );
+        }
+    }
+);
+
+/*
+    =========================
+    LEAVE ROOM
+    =========================
+*/
+
+socket.on("leaveRoom", () => {
+
+    const room =
+        socket.data.room;
+
+    const username =
+        socket.data.username;
+
+    if (!room) {
+        return;
+    }
+
+    socket.leave(room);
+
+    io.to(room).emit(
+        "systemMessage",
+        createSystemMessage(
+            username +
+            " left the room!"
+        )
+    );
+
+    console.log(
+        username +
+        " left " +
+        room
+    );
+
+    socket.data.room =
+        null;
+});
+
+/*
+    =========================
+    DISCONNECT
+    =========================
+*/
+
+socket.on("disconnect", () => {
+
+    const room =
+        socket.data.room;
+
+    const username =
+        socket.data.username;
+
+    if (
+        room &&
+        username
+    ) {
 
         io.to(room).emit(
             "systemMessage",
             createSystemMessage(
-                username + " left the room!"
+                username +
+                " left the room!"
             )
         );
 
-        console.log(username + " left " + room);
+        console.log(
+            username +
+            " disconnected from " +
+            room
+        );
 
-        socket.data.room = null;
-    });
+    } else {
 
-    socket.on("disconnect", () => {
-        const room = socket.data.room;
-        const username = socket.data.username;
+        console.log(
+            "User disconnected:",
+            socket.id
+        );
+    }
+});
+```
 
-        if (room && username) {
-            io.to(room).emit(
-                "systemMessage",
-                createSystemMessage(
-                    username + " left the room!"
-                )
-            );
-
-            console.log(username + " disconnected from " + room);
-        } else {
-            console.log("User disconnected:", socket.id);
-        }
-    });
 });
 
-server.listen(PORT, () => {
-    console.log("MangoMessage server running on port " + PORT);
-});
+/*
+=========================
+START SERVER
+=========================
+*/
+
+server.listen(
+PORT,
+() => {
+console.log(
+"MangoMessage server running on port " +
+PORT
+);
+}
+);
