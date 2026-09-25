@@ -239,3 +239,51 @@ button:active {
         width: 100%;
     }
 }
+
+.spamOverlay {
+position: fixed;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+background: rgba(0, 0, 0, 0.75);
+z-index: 9999;
+}
+
+.spamPopup {
+width: min(400px, 90vw);
+padding: 28px;
+text-align: center;
+background: #191c23;
+border: 1px solid #343944;
+border-radius: 14px;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.spamPopup h2 {
+margin-top: 0;
+color: #ffffff;
+}
+
+.spamCode {
+margin: 20px 0;
+font-size: 32px;
+font-weight: bold;
+letter-spacing: 8px;
+color: #ffffff;
+}
+
+.spamPopup input {
+width: 100%;
+text-align: center;
+text-transform: uppercase;
+}
+
+.spamPopup button {
+margin-top: 12px;
+}
+
+.spamError {
+min-height: 18px;
+color: #ff6b6b;
+}
